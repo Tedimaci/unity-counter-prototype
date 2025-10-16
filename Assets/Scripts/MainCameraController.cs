@@ -37,9 +37,9 @@ public class MainCameraController : MonoBehaviour
         }
         transform.position = new Vector3(transform.position.x, y, transform.position.z);
     }
-
+    /*
     public void OnAttack()
     {
         spheres.DropBalls();
-    }
+    }*/
 }

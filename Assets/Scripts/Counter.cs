@@ -1,23 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class Counter : MonoBehaviour
 {
-    public Text CounterText;
+    public UnityEvent<Collider> onTriggerEnter;
 
-    private int Count = 0;
-
-    private void Start()
+    void OnTriggerEnter(Collider col)
     {
-        Count = 0;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        Count += 1;
-        CounterText.text = "Count : " + Count;
+        onTriggerEnter?.Invoke(col);
     }
 }
