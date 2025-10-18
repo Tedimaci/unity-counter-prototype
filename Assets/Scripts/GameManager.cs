@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using Unity.VisualScripting;
+using System.Collections;
 
 [DefaultExecutionOrder(1000)]
 public class GameManager : MonoBehaviour
@@ -16,7 +16,8 @@ public class GameManager : MonoBehaviour
         Guess,
         Fall,
         Wait,
-        End
+        End,
+        Reset
     }
     public GameStage stage;
     public TMP_InputField inputField;
@@ -26,6 +27,8 @@ public class GameManager : MonoBehaviour
     public int fallenSphereCount;
     public int sphereInBoxCount;
     public float countdown;
+    public GameObject gameOverPanel;
+    public MainCameraController camera;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -41,8 +44,9 @@ public class GameManager : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    { 
-        switch(stage)
+    {
+        gameOverPanel.GetComponent<RectTransform>().sizeDelta = gameObject.GetComponent<RectTransform>().sizeDelta + new Vector2(20,20);
+        switch (stage)
         {
             case GameStage.Guess:
             {
@@ -77,20 +81,55 @@ public class GameManager : MonoBehaviour
             }
             case GameStage.End:
             {
-                    IncreaseTowerSize();
+                    if (int.TryParse(inputField.text, out int num))
+                    {
+                        if (num == sphereInBoxCount)
+                        {
+                            gameOverPanel.GetComponent<Image>().color = new Color(0,200,0);
+                            gameOverPanel.GetComponentInChildren<TMP_Text>().text = "Good Job";
+                            IncreaseTowerSize();
+                        }
+                        else
+                        {
+                            gameOverPanel.GetComponent<Image>().color = new Color(200, 0, 0);
+                            gameOverPanel.GetComponentInChildren<TMP_Text>().text = "Skill Issue";
+                        }
+                    }
+                    else
+                    {
+                        gameOverPanel.GetComponent<Image>().color = new Color(200, 0, 0);
+                        gameOverPanel.GetComponentInChildren<TMP_Text>().text = "Huh?";
+                    }
+                    gameOverPanel.SetActive(true);
+                    SphereController.SharedInstance.ResetPooledObject();
+                    SphereController.SharedInstance.GenerateSpheres(sphereCount, towerHeight);
                     fallenSphereCount = 0;
                     sphereInBoxCount = 0;
                     CounterText.text = "Number of spheres in the box : " + sphereInBoxCount;
                     inputField.text = string.Empty;
-                    stage = GameStage.Guess;
+                    StartCoroutine(NewGame());
+                    stage = GameStage.Reset;
                     break;
             }
+            case GameStage.Reset:
+                {
+                    break;
+                }
         }
+    }
+
+    private IEnumerator NewGame()
+    {
+        yield return new WaitForSeconds(3.0f);
+        stage = GameStage.Guess;
+        inputField.interactable = true;
+        gameOverPanel.SetActive(false);
     }
 
     public void StartGame()
     {
         startButton.interactable = false;
+        inputField.interactable = false;
         stage = GameStage.Fall;
         countdown = 30.0f;
         SphereController.SharedInstance.DropBalls();
@@ -105,7 +144,7 @@ public class GameManager : MonoBehaviour
                 {
                     if (countdown >= 10.0f)
                         countdown = 10.0f;
-                    CounterText.text = "Number of spheres in the box : 10";
+                    CounterText.text = "Number of spheres in the box : " + sphereInBoxCount;
                     roundEndText.gameObject.SetActive(true);
                     stage = GameStage.Wait;
                     break;
@@ -139,9 +178,8 @@ public class GameManager : MonoBehaviour
 
     private void IncreaseTowerSize()
     {
-        SphereController.SharedInstance.ResetPooledObject();
         ObstacleController.SharedInstance.AddObstacle();
         towerHeight = ObstacleController.SharedInstance.actualHeight;
-        SphereController.SharedInstance.GenerateSpheres(sphereCount, towerHeight);
+        camera.maxElevation = towerHeight;
     }
 }

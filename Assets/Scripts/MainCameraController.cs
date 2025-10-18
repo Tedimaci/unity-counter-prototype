@@ -3,24 +3,9 @@ using UnityEngine.InputSystem;
 
 public class MainCameraController : MonoBehaviour
 {
-    public SphereController spheres;
-    
     public float turnSensitivity = 1;
     public float elevationSensitivity = 0.1f;
-    public float maxElevation = 20.0f;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    public float maxElevation = 0.0f;
     public void OnLook(InputValue value)
     {
         var v = value.Get<Vector2>();
@@ -37,9 +22,4 @@ public class MainCameraController : MonoBehaviour
         }
         transform.position = new Vector3(transform.position.x, y, transform.position.z);
     }
-    /*
-    public void OnAttack()
-    {
-        spheres.DropBalls();
-    }*/
 }
