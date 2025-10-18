@@ -92,7 +92,7 @@ public class GameManager : MonoBehaviour
                         else
                         {
                             gameOverPanel.GetComponent<Image>().color = new Color(200, 0, 0);
-                            gameOverPanel.GetComponentInChildren<TMP_Text>().text = "Skill Issue";
+                            gameOverPanel.GetComponentInChildren<TMP_Text>().text = "Try Again";
                         }
                     }
                     else
