@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// Scipt to add Camera functionality bound to Mouse/Touchscreen using InputSystem Package
 public class MainCameraController : MonoBehaviour
 {
     public float turnSensitivity = 1;

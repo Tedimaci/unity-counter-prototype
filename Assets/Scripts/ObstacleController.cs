@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using Unity.Hierarchy;
 using UnityEngine;
 
 public class ObstacleController : MonoBehaviour

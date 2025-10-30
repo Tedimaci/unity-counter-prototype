@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
     public GameStage stage;
     public TMP_InputField inputField;
     public Button startButton;
-    public WallController onSphereLanded;
+    public Counter onSphereLanded;
     public Counter onSphereLandedInBox;
     public int fallenSphereCount;
     public int sphereInBoxCount;
