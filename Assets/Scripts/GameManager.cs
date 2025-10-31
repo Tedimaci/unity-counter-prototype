@@ -6,12 +6,23 @@ using System.Collections;
 [DefaultExecutionOrder(1000)]
 public class GameManager : MonoBehaviour
 {
-    public float towerHeight = 0;
-    public int sphereCount = 20;
-    public TMP_Text sphereCountText;
-    public TMP_Text roundEndText;
-    public Text CounterText;
-    public enum GameStage
+    [Header("Game objects to be mapped")]
+    [SerializeField] private TMP_Text sphereCountText;
+    [SerializeField] private TMP_Text roundEndText;
+    [SerializeField] private Text CounterText;
+    [SerializeField] private TMP_InputField inputField;
+    [SerializeField] private Button startButton;
+    [SerializeField] private Counter onSphereLanded;
+    [SerializeField] private Counter onSphereLandedInBox;
+    [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private new MainCameraController camera;
+    // Game state variables
+    private float towerHeight = 0;
+    private int sphereCount = 20;
+    private int fallenSphereCount;
+    private int sphereInBoxCount;
+    private float countdown;
+    private enum GameStage
     {
         Guess,
         Fall,
@@ -19,25 +30,20 @@ public class GameManager : MonoBehaviour
         End,
         Reset
     }
-    public GameStage stage;
-    public TMP_InputField inputField;
-    public Button startButton;
-    public Counter onSphereLanded;
-    public Counter onSphereLandedInBox;
-    public int fallenSphereCount;
-    public int sphereInBoxCount;
-    public float countdown;
-    public GameObject gameOverPanel;
-    public MainCameraController camera;
+    private GameStage stage;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // Initialize the game for the first round
         stage = GameStage.Guess;
         fallenSphereCount = 0;
         sphereInBoxCount = 0;
         countdown = 0.0f;
         sphereCountText.text = "Total number of spheres: " + sphereCount;
         SphereController.SharedInstance.GenerateSpheres(sphereCount, towerHeight);
+
+        // Bind the trigger functions to the exposed Collider events
         onSphereLanded.onTriggerEnter.AddListener(SphereLanded);
         onSphereLandedInBox.onTriggerEnter.AddListener(SphereLandedInBox);
     }
@@ -126,6 +132,7 @@ public class GameManager : MonoBehaviour
         gameOverPanel.SetActive(false);
     }
 
+    // Function to start the round
     public void StartGame()
     {
         startButton.interactable = false;
@@ -135,6 +142,7 @@ public class GameManager : MonoBehaviour
         SphereController.SharedInstance.DropBalls();
     }
 
+    // Function to count number of Spheres that are landed in the box
     public void SphereLanded(Collider col)
     {
         fallenSphereCount++;
@@ -158,14 +166,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Function to count number of Spheres that are landed in the box
     public void SphereLandedInBox(Collider col)
     {
         sphereInBoxCount += 1;
         CounterText.text = "Number of spheres in the box : " + sphereInBoxCount;
     }
 
+    // Function to control if the Start Round button is iteractable
     public void OnInputFieldValueChange()
     {
+        // Only make the button interactable if a number input was made
         if (string.IsNullOrEmpty(inputField.text))
         {
             startButton.interactable = false;
@@ -176,6 +187,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Function for increasing tower size and setting game parameters
     private void IncreaseTowerSize()
     {
         ObstacleController.SharedInstance.AddObstacle();

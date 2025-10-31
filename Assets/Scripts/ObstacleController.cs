@@ -1,18 +1,19 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
+// Script to control the generation of the tower of obstacles
 public class ObstacleController : MonoBehaviour
 {
-    public GameObject[] obstacleList;
-    public Color[] colors;
-    public int initialHeight;
-    public float actualHeight;
-    public int actualFloorNumber = 0;
-    //private
-    private Dictionary<int, int> obstacleDictionary = new Dictionary<int, int>();
-    private Dictionary<int, int> obstacleAngleDictionary = new Dictionary<int, int>();
-    private int obstacleListMax =0;
+    [Header("Tower generation setup")]
+    [SerializeField] private int initialHeight;
+    [SerializeField] private GameObject[] obstacleList;
+    [SerializeField] private Material[] materials;
 
+    public float actualHeight { get; private set; } = 0;
+    public int actualFloorNumber { get; private set; } = 0;
+    private int[] obstacles;
+    private int[] obstacleAngles;
     public static ObstacleController SharedInstance;
 
     void Awake()
@@ -20,52 +21,62 @@ public class ObstacleController : MonoBehaviour
         SharedInstance = this;
     }
 
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
-        obstacleListMax = 0;
+        // Check if obstacles are assigned in the Inspector
+        if (obstacleList == null)
+            Debug.LogError("At least one Gameobject must be assigned to obstacleList!");
+        // Check if materials are assigned in the Inspector
+        if (materials == null)
+            Debug.LogError("At least one Gameobject must be assigned to materials!");
+        // Claculate the length and initialize the possible obstacle and angle variations
+        int obstaclesLength = 0;
         for (int a = 0; a < obstacleList.Length; a++)
         {
-            for (int b = 0;
-                b < obstacleList[a].GetComponent<ObstacleParameters>().obstacleAngleVariant.Length; 
-                b++)
+            obstaclesLength += obstacleList[a].GetComponent<ObstacleParameters>().obstacleAngleVariant.Length;
+        }
+        obstacles = new int[obstaclesLength];
+        obstacleAngles = new int[obstaclesLength];
+        // Fill up the initialized obstacle arrays
+        int i = 0;
+        for (int a = 0; a < obstacleList.Length; a++)
+        {
+            for (int b = 0; b < obstacleList[a].GetComponent<ObstacleParameters>().obstacleAngleVariant.Length; b++)
             {
-                obstacleDictionary.Add(obstacleListMax, a);
-                obstacleAngleDictionary.Add(obstacleListMax,
-                    obstacleList[a].GetComponent<ObstacleParameters>().obstacleAngleVariant[b]);
-                obstacleListMax++;
+                obstacles[i] = a;
+                obstacleAngles[i] = obstacleList[a].GetComponent<ObstacleParameters>().obstacleAngleVariant[b];
+                i++;
             }
         }
     }
 
+    // Function to add a floor to the tower
     public void AddObstacle()
     {
-        int index = Random.Range(0, obstacleListMax);
+        // Generate a random index
+        int index = Random.Range(0, obstacles.Length);
+        // Calculate the height of the tower
         actualHeight = initialHeight + actualFloorNumber *
-                obstacleList[obstacleDictionary[index]].GetComponent<ObstacleParameters>().obstacleHeight;
-        Instantiate(obstacleList[obstacleDictionary[index]],
+                obstacleList[obstacles[index]].GetComponent<ObstacleParameters>().obstacleHeight;
+        // Instantiate the chosen obsatcle with its rotation
+        GameObject newObstacle = Instantiate(obstacleList[obstacles[index]],
             new Vector3(0, actualHeight, 0),
-            Quaternion.Euler(0, obstacleAngleDictionary[index], 0),
+            Quaternion.Euler(0, obstacleAngles[index], 0),
             transform);
         actualFloorNumber++;
-    }
-
-    public void RemoveObstacle()
-    {
-        float top = 0;
-        GameObject gameObject = null;
-        foreach (var obstacle in GetComponentsInChildren<Transform>())
+        // Change the material of the obstacle
+        int obstacleMaterialIndex = Random.Range(0, materials.Length);
+        foreach (var obstacleRenderer in newObstacle.GetComponentsInChildren<MeshRenderer>())
         {
-            if (obstacle.position.y > top)
-            {
-                top = obstacle.position.y;
-                gameObject = obstacle.gameObject;
-            }
+            obstacleRenderer.material = materials[obstacleMaterialIndex];
         }
-        Destroy(gameObject);
     }
 
+    // Function to remove all obstacles from the tower
     public void RemoveAllObstacle()
     {
+        // Destroy ebery object that is a child component of the obstacle controller
         foreach (var obstacle in GetComponentsInChildren<Transform>())
         {
             if (!obstacle.CompareTag("GameController"))
@@ -73,5 +84,8 @@ public class ObstacleController : MonoBehaviour
                 Destroy(obstacle.gameObject);
             }
         }
+        // Reset the public variables
+        actualFloorNumber = 0;
+        actualHeight = 0;
     }
 }
